@@ -28,9 +28,6 @@ if !errorlevel! equ 0 (
     :: Run the PowerShell script with bypassing the execution policy
     powershell -ExecutionPolicy Bypass -File "%downloaded_script%"
     
-    :: Clean up the downloaded script
-    del "%downloaded_script%"
-    
     echo Script execution complete.
 ) else (
     echo Failed to download the script from %script_url%
