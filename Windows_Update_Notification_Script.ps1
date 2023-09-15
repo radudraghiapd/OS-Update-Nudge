@@ -2,9 +2,9 @@
 Function CheckForUpdates {
     $updateSession = New-Object -ComObject Microsoft.Update.Session
     $updateSearcher = $updateSession.CreateUpdateSearcher()
-    $updates = $updateSearcher.Search("IsInstalled=0 and Type='Software'").Updates
+    $updates = $updateSearcher.Search("IsInstalled=0 and Type='Software'")
 
-    If ($updates.Count -eq 0) {
+    If ($updates.Updates.Count -eq 0) {
         return $false
     } else {
         return $true
