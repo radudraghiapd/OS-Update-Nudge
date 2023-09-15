@@ -25,7 +25,7 @@ Function DisplayNotification {
         Invoke-Expression -Command "control /name Microsoft.WindowsUpdate"
 
         # Add your additional script or command here
-        Invoke-Expression -Command "C:\ProgramData\Windows_Update_Notification_Script.ps1"
+        Invoke-Expression -Command "C:\Path\To\Your\AdditionalScript.ps1"
     }
 }
 
@@ -37,9 +37,5 @@ If (CheckForUpdates) {
 "@
 Set-Content -Path $scriptPath -Value $scriptContent
 
-# Register a scheduled task to run the script daily at 12:00 PM
-$taskAction = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-ExecutionPolicy Bypass -File $scriptPath"
-$taskTrigger = New-ScheduledTaskTrigger -Daily -At "12:00 PM"
-Register-ScheduledTask -Action $taskAction -Trigger $taskTrigger -TaskName "Windows_Update_Check" -User "NT AUTHORITY\SYSTEM" -Force
-
-Write-Host "Script and scheduled task created and configured."
+# Run the script using Invoke-Expression
+Invoke-Expression -Command "C:\ProgramData\Windows_Update_Notification_Script.ps1"
