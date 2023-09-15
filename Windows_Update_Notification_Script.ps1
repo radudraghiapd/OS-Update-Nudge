@@ -25,7 +25,6 @@ Function DisplayNotification {
         Invoke-Expression -Command "control /name Microsoft.WindowsUpdate"
 
         # Add your additional script or command here
-        # For example, you can call another PowerShell script:
         Invoke-Expression -Command "C:\Path\To\Your\AdditionalScript.ps1"
     }
 }
