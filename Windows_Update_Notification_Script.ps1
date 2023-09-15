@@ -1,15 +1,9 @@
-# Define the path for the PowerShell script to check for updates and display notifications
-$scriptPath = "C:\ProgramData\Windows_Update_Notification_Script.ps1"
-
-# Create the PowerShell script to check for updates and display notifications
+# Define the script content as a Here-String
 $scriptContent = @"
-# Function to check for Windows updates
+# Function to check for software updates
 Function CheckForUpdates {
-    \$updateSession = New-Object -ComObject Microsoft.Update.Session
-    \$updateSearcher = \$updateSession.CreateUpdateSearcher()
-    \$updates = \$updateSearcher.Search("IsInstalled=0 and Type='Software'").Updates
-
-    If (\$updates.Count -eq 0) {
+    $updateResult = softwareupdate -l 2>&1
+    if ($updateResult -match "No new software available.") {
         return \$false
     } else {
         return \$true
@@ -18,26 +12,27 @@ Function CheckForUpdates {
 
 # Function to display a notification
 Function DisplayNotification {
-    Add-Type -AssemblyName PresentationFramework
-    \$result = [System.Windows.MessageBox]::Show("Windows updates are available. Click 'Open Updates' to install them.", "Update Notification", [System.Windows.MessageBoxButton]::YesNo)
+    Add-Type -TypeDefinition @"
+    using System;
+    using System.Windows.Forms;
 
-    If (\$result -eq [System.Windows.MessageBoxResult]::Yes) {
-        Invoke-Expression -Command "control /name Microsoft.WindowsUpdate"
-
-        # Add your additional script or command here
-        Invoke-Expression -Command "C:\Path\To\Your\AdditionalScript.ps1"
+    public class MessageBoxShowDialog {
+        public static void ShowDialog() {
+            DialogResult result = MessageBox.Show("Software updates are available. Click 'OK' to install them.", "Update Notification", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
+            if (result == DialogResult.OK) {
+                System.Diagnostics.Process.Start("ms-settings:windowsupdate");
+            }
+        }
     }
+"@
+    [MessageBoxShowDialog]::ShowDialog()
 }
 
 # Check for updates
-If (CheckForUpdates) {
+if (CheckForUpdates) {
     DisplayNotification
 }
-
 "@
 
-# Save the script content to a file
-Set-Content -Path $scriptPath -Value $scriptContent
-
 # Execute the script using Invoke-Expression
-Invoke-Expression -Command "C:\ProgramData\Windows_Update_Notification_Script.ps1"
+Invoke-Expression -Command $scriptContent
