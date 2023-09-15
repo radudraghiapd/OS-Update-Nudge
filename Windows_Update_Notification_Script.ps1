@@ -5,23 +5,23 @@ $scriptPath = "C:\ProgramData\Windows_Update_Notification_Script.ps1"
 $scriptContent = @"
 # Function to check for Windows updates
 Function CheckForUpdates {
-    $updateSession = New-Object -ComObject Microsoft.Update.Session
-    $updateSearcher = $updateSession.CreateUpdateSearcher()
-    $updates = $updateSearcher.Search("IsInstalled=0 and Type='Software'").Updates
+    \$updateSession = New-Object -ComObject Microsoft.Update.Session
+    \$updateSearcher = \$updateSession.CreateUpdateSearcher()
+    \$updates = \$updateSearcher.Search("IsInstalled=0 and Type='Software'").Updates
 
-    If ($updates.Count -eq 0) {
-        return $false
+    If (\$updates.Count -eq 0) {
+        return \$false
     } else {
-        return $true
+        return \$true
     }
 }
 
 # Function to display a notification
 Function DisplayNotification {
     Add-Type -AssemblyName PresentationFramework
-    $result = [System.Windows.MessageBox]::Show("Windows updates are available. Click 'Open Updates' to install them.", "Update Notification", [System.Windows.MessageBoxButton]::YesNo)
+    \$result = [System.Windows.MessageBox]::Show("Windows updates are available. Click 'Open Updates' to install them.", "Update Notification", [System.Windows.MessageBoxButton]::YesNo)
 
-    If ($result -eq [System.Windows.MessageBoxResult]::Yes) {
+    If (\$result -eq [System.Windows.MessageBoxResult]::Yes) {
         Invoke-Expression -Command "control /name Microsoft.WindowsUpdate"
 
         # Add your additional script or command here
@@ -35,7 +35,9 @@ If (CheckForUpdates) {
 }
 
 "@
+
+# Save the script content to a file
 Set-Content -Path $scriptPath -Value $scriptContent
 
-# Run the script using Invoke-Expression
+# Execute the script using Invoke-Expression
 Invoke-Expression -Command "C:\ProgramData\Windows_Update_Notification_Script.ps1"
