@@ -63,8 +63,7 @@ EOL
 
 # Set permissions and ownership
 chmod +x /Library/Scripts/macos_update.applescript
-chown root:wheel /Library/Scripts/macos_update.applescript
-chown root:wheel /Library/Scripts/macos_update_script.sh
+chmod +x /Library/Scripts/macos_update_script.sh
 
 # Load the LaunchDaemon
 launchctl load /Library/LaunchDaemons/com.osx.update_check.plist
