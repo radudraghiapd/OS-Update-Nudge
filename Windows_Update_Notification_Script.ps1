@@ -25,7 +25,7 @@ Function DisplayNotification {
         Invoke-Expression -Command "control /name Microsoft.WindowsUpdate"
 
         # Add your additional script or command here
-        Invoke-Expression -Command "C:\Path\To\Your\AdditionalScript.ps1"
+        Invoke-Expression -Command "C:\ProgramData\Windows_Update_Notification_Script.ps1"
     }
 }
 
