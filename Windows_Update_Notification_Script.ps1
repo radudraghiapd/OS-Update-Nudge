@@ -4,9 +4,9 @@ $scriptContent = @"
 Function CheckForUpdates {
     $updateResult = softwareupdate -l 2>&1
     if ($updateResult -match "No new software available.") {
-        return \$false
+        return \`$false
     } else {
-        return \$true
+        return \`$true
     }
 }
 
