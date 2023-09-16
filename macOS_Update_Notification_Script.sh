@@ -27,32 +27,61 @@ EOL
 cat <<EOL > /Library/Scripts/macos_update.applescript
 -- Function to check for software updates
 on checkForUpdates()
-    do shell script "softwareupdate -l"
+    set updatesAvailable to do shell script "softwareupdate -l"
+    
+    -- Initialize variables to store update information and determine extraction
+    set versionNumber to ""
+    set extractInfo to false
+    
+    -- Split the lines into a list
+    set linesList to paragraphs of updatesAvailable
+    
+    -- Iterate through the list to find the version number
+    repeat with i from 1 to count linesList
+        set thisLine to item i of linesList
+        if thisLine contains "macOS Ventura" then
+            -- Extract the version number
+            set versionNumber to last word of thisLine
+            exit repeat
+        end if
+    end repeat
+    
+    -- If the version number was found, continue extracting other information
+    if versionNumber is not equal to "" then
+        set extractInfo to true
+    end if
+    
+    -- Initialize a variable to store update information
+    set updateInfo to ""
+    
+    -- Extract and format the relevant update information for all updates
+    repeat with i from i to count linesList
+        set thisLine to item i of linesList
+        if extractInfo then
+            if thisLine is not in {"", " ", tab} and thisLine does not contain "Recommended:" and thisLine does not contain "Action:" then
+                set updateInfo to updateInfo & thisLine & return
+            else
+                exit repeat
+            end if
+        end if
+    end repeat
+    
+    return versionNumber & return & updateInfo
 end checkForUpdates
 
 -- Function to display a notification
 on displayNotification()
-    display dialog "Software updates are available. Click \"Open Updates\" to install them." buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
+    set updateDetails to checkForUpdates()
+    
+    set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
+    set buttonText to "Click \"Open Updates\" to install them."
+    set dialogText to messageText & return & return & updateDetails & return & buttonText
+    display dialog dialogText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
 end displayNotification
 
--- Check for updates
-set updatesAvailable to checkForUpdates()
+-- Check for updates and display the notification
+displayNotification()
 
--- Display the notification only if updates are available
-if updatesAvailable contains "No new software available." then
-    -- No updates available, do nothing
-else
-    -- Updates available, display the notification
-    displayNotification()
-    
-    -- Capture the response
-    set response to button returned of result
-    
-    -- Check the response and open the Software Update preference pane if "Open Updates" was clicked
-    if response is equal to "Open Updates" then
-        do shell script "open /System/Library/PreferencePanes/SoftwareUpdate.prefPane"
-    end if
-end if
 EOL
 
 # Create the Bash script
