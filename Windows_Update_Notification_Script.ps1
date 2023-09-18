@@ -13,7 +13,7 @@ Function CheckForUpdates {
 
 # Function to display a notification with update details
 Function DisplayNotificationWithDetails($updates) {
-    $message = "A fully up-to-date device is required to ensure that IT can accurately protect your device.`n`nClick 'Open Updates' to install them.`n`nUpdate Details:`n"
+    $message = "A fully up-to-date device is required to ensure that IT can accurately protect your device.`n`n'Click Yes' to open Windows Update, or 'No' to dismiss the notification.`n`nUpdate Details:`n"
 
     foreach ($update in $updates) {
         $message += "`nTitle: $($update.Title)`nDescription: $($update.Description)`nKBArticleIDs: $($update.KBArticleIDs)`n----------------------------------`n"
