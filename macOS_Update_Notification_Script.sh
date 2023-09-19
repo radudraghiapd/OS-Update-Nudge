@@ -43,7 +43,7 @@ cat <<EOL > "$launchagent_file"
 EOL
 
 # Create the AppleScript file
-cat <<EOL > /Library/Scripts/macos_update.applescript
+cat <<EOL > "$applescript_file"
 -- Function to check for software updates
 on checkForUpdates()
     set updatesAvailable to do shell script "softwareupdate -l"
