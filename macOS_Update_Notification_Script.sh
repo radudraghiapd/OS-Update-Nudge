@@ -99,9 +99,11 @@ on displayNotification()
 end displayNotification
 
 -- Check for updates and display the notification
-displayNotification()EOL
+displayNotification()
 
-# Create the Bash script in the Scripts directory
+EOL
+
+# Create the Bash script directly in the Scripts directory
 cat <<EOL > "$bash_script_file"
 #!/bin/bash
 osascript "$applescript_file"
@@ -115,3 +117,4 @@ chown "$current_user" "$applescript_file" "$bash_script_file"
 launchctl bootstrap gui/$UID "$launchagent_file"
 
 echo "Scripts and LaunchAgent created and configured for user: $current_user"
+
