@@ -42,9 +42,65 @@ cat <<EOL > "$launchagent_file"
 </plist>
 EOL
 
-# Create the AppleScript file in the Scripts directory
-cat <<EOL > "$applescript_file"
--- ... (Your AppleScript code here)
+# Create the AppleScript file
+cat <<EOL > /Library/Scripts/macos_update.applescript
+-- Function to check for software updates
+on checkForUpdates()
+    set updatesAvailable to do shell script "softwareupdate -l"
+    
+    -- Initialize variables to store update information and determine extraction
+    set versionNumber to ""
+    set extractInfo to false
+    
+    -- Split the lines into a list
+    set linesList to paragraphs of updatesAvailable
+    
+    -- Iterate through the list to find the version number
+    repeat with i from 1 to count linesList
+        set thisLine to item i of linesList
+        if thisLine contains "macOS Ventura" then
+            -- Extract the version number
+            set versionNumber to last word of thisLine
+            exit repeat
+        end if
+    end repeat
+    
+    -- If the version number was found, continue extracting other information
+    if versionNumber is not equal to "" then
+        set extractInfo to true
+    end if
+    
+    -- Initialize a variable to store update information
+    set updateInfo to ""
+    
+    -- Extract and format the relevant update information for all updates
+    repeat with i from i to count linesList
+        set thisLine to item i of linesList
+        if extractInfo then
+            if thisLine is not in {"", " ", tab} and thisLine does not contain "Recommended:" and thisLine does not contain "Action:" then
+                set updateInfo to updateInfo & thisLine & return
+            else
+                exit repeat
+            end if
+        end if
+    end repeat
+    
+    return versionNumber & return & updateInfo
+end checkForUpdates
+
+-- Function to display a notification
+on displayNotification()
+    set updateDetails to checkForUpdates()
+    
+    set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
+    set buttonText to "Click \"Open Updates\" to install them."
+    set dialogText to messageText & return & return & updateDetails & return & buttonText
+    display dialog dialogText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
+end displayNotification
+
+-- Check for updates and display the notification
+displayNotification()
+
 EOL
 
 # Create the Bash script in the Scripts directory
