@@ -9,9 +9,10 @@ user_home_dir=$(eval echo ~$current_user)
 # Set the path to the script files
 applescript_file="$user_home_dir/Library/Scripts/macos_update.applescript"
 bash_script_file="$user_home_dir/Library/Scripts/macos_update_script.sh"
+launchdaemon_file="/Library/LaunchDaemons/com.osx.update_check.plist"
 
 # Create the LaunchDaemon plist file
-cat <<EOL > /Library/LaunchDaemons/com.osx.update_check.plist
+cat <<EOL > "$launchdaemon_file"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -35,7 +36,7 @@ EOL
 
 # Create the AppleScript file
 cat <<EOL > "$applescript_file"
-# ... (Your AppleScript code here)
+-- ... (Your AppleScript code here)
 EOL
 
 # Create the Bash script
@@ -48,7 +49,11 @@ EOL
 chown "$current_user" "$applescript_file" "$bash_script_file"
 chmod +x "$applescript_file" "$bash_script_file"
 
+# Set ownership and permissions for the LaunchDaemon plist file
+sudo chown root:wheel "$launchdaemon_file"
+sudo chmod 644 "$launchdaemon_file"
+
 # Load the LaunchDaemon
-launchctl load /Library/LaunchDaemons/com.osx.update_check.plist
+sudo launchctl load "$launchdaemon_file"
 
 echo "Scripts and LaunchDaemon created and configured for user: $current_user"
