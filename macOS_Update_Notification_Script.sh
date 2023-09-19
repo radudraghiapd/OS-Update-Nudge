@@ -116,7 +116,8 @@ chown $USER ~/Library/LaunchAgents/com.osx.update_check.plist
 
 
 # Load the LaunchAgent for the user
-launchctl bootstrap gui/$UID "$launchagent_file"
+launchctl bootout gui/$UID "$launchagent_file"  # Unload the launch agent
+launchctl bootstrap gui/$UID "$launchagent_file"  # Load the launch agent
 
 echo "Scripts and LaunchAgent created and configured for user: $current_user"
 
