@@ -42,7 +42,7 @@ cat <<EOL > "$launchagent_file"
 </plist>
 EOL
 
-# Create the AppleScript file
+# Create the AppleScript file directly in the Scripts directory
 cat <<EOL > "$applescript_file"
 -- Function to check for software updates
 on checkForUpdates()
@@ -99,9 +99,7 @@ on displayNotification()
 end displayNotification
 
 -- Check for updates and display the notification
-displayNotification()
-
-EOL
+displayNotification()EOL
 
 # Create the Bash script in the Scripts directory
 cat <<EOL > "$bash_script_file"
