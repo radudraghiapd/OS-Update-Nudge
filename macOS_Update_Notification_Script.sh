@@ -106,8 +106,8 @@ osascript "$applescript_file"
 EOL
 
 # Set permissions and ownership for the script file in /Library/Scripts
-sudo chmod +x "$bash_script_file"
-sudo chown root:wheel "$bash_script_file"
+chmod +x /Library/Scripts/macos_update.applescript
+chmod +x /Library/Scripts/macos_update_script.sh
 
 # Load the LaunchAgent for the user
 launchctl bootstrap gui/$UID "$launchagent_file"
