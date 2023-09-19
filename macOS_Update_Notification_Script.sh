@@ -7,15 +7,15 @@ current_user=$(stat -f %Su /dev/console)
 user_home_dir=$(eval echo ~$current_user)
 
 # Set the path to the script files
-applescript_file="$user_home_dir/Library/Scripts/macos_update.applescript"
-bash_script_file="$user_home_dir/Library/Scripts/macos_update_script.sh"
+applescript_file="/Library/Scripts/macos_update.applescript"
+bash_script_file="/Library/Scripts/macos_update_script.sh"
 launchdaemon_file="/Library/LaunchDaemons/com.osx.update_check.plist"
 
 # Create the LaunchDaemon plist file
-cat <<EOL > "$launchdaemon_file"
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
+sudo bash -c "cat <<EOL > $launchdaemon_file
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
 <dict>
    <key>Label</key>
    <string>com.osx.update_check</string>
@@ -32,26 +32,22 @@ cat <<EOL > "$launchdaemon_file"
    </dict>
 </dict>
 </plist>
-EOL
+EOL"
 
 # Create the AppleScript file
-cat <<EOL > "$applescript_file"
+cat <<EOL | sudo tee "$applescript_file" > /dev/null
 -- ... (Your AppleScript code here)
 EOL
 
 # Create the Bash script
-cat <<EOL > "$bash_script_file"
+cat <<EOL | sudo tee "$bash_script_file" > /dev/null
 #!/bin/bash
 osascript "$applescript_file"
 EOL
 
 # Set permissions and ownership based on the current user
-chown "$current_user" "$applescript_file" "$bash_script_file"
-chmod +x "$applescript_file" "$bash_script_file"
-
-# Set ownership and permissions for the LaunchDaemon plist file
-sudo chown root:wheel "$launchdaemon_file"
-sudo chmod 644 "$launchdaemon_file"
+sudo chown "$current_user" "$applescript_file" "$bash_script_file"
+sudo chmod +x "$applescript_file" "$bash_script_file"
 
 # Load the LaunchDaemon
 sudo launchctl load "$launchdaemon_file"
