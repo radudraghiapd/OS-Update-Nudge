@@ -6,9 +6,11 @@ current_user=$(stat -f %Su /dev/console)
 # Set the path to the user's home directory
 user_home_dir=$(eval echo ~$current_user)
 
-# Set the path to the script files
+# Set the path to the script files in the user's home directory
 applescript_file="$user_home_dir/Library/Scripts/macos_update.applescript"
 bash_script_file="$user_home_dir/Library/Scripts/macos_update_script.sh"
+
+# Set the path to the LaunchAgent plist in the user's LaunchAgents folder
 launchagent_file="$user_home_dir/Library/LaunchAgents/com.osx.update_check.plist"
 
 # Create the LaunchAgent plist file
@@ -34,18 +36,22 @@ cat <<EOL > "$launchagent_file"
 </plist>
 EOL
 
-# Create the AppleScript file
+# Create the AppleScript file in the user's home directory
 cat <<EOL > "$applescript_file"
 -- ... (Your AppleScript code here)
 EOL
 
-# Create the Bash script
+# Create the Bash script in the user's home directory
 cat <<EOL > "$bash_script_file"
 #!/bin/bash
 osascript "$applescript_file"
 EOL
 
-# Set permissions and ownership for the script files
+# Set permissions and ownership for the user
 chmod +x "$applescript_file" "$bash_script_file"
+chown "$current_user" "$applescript_file" "$bash_script_file"
+
+# Load the LaunchAgent for the user
+launchctl bootstrap gui/$UID "$launchagent_file"
 
 echo "Scripts and LaunchAgent created and configured for user: $current_user"
