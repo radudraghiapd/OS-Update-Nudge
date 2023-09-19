@@ -111,8 +111,8 @@ EOL
 
 # Set permissions and ownership for the user
 chmod +x "$applescript_file" "$bash_script_file"
-chown "$current_user" "$applescript_file" "$bash_script_file"
-chown $USER ~/Library/LaunchAgents/com.osx.update_check.plist
+chown "$current_user" "$applescript_file" "$bash_script_file" "$launchagent_file"
+
 
 
 # Load the LaunchAgent for the user
