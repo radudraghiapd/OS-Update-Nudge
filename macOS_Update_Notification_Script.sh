@@ -42,6 +42,9 @@ cat <<EOL > "$launchagent_file"
 </plist>
 EOL
 
+# Set the ownership of the LaunchAgent plist to the current user
+chown "$current_user" "$launchagent_file"
+
 # Create the AppleScript file directly in the Scripts directory
 cat <<EOL > "$applescript_file"
 -- Function to check for software updates
@@ -111,7 +114,7 @@ EOL
 
 # Set permissions and ownership for the user
 chmod +x "$applescript_file" "$bash_script_file"
-chown "$current_user" "$applescript_file" "$bash_script_file" "$launchagent_file"
+chown "$current_user" "$applescript_file" "$bash_script_file"
 
 
 
