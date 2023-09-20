@@ -142,10 +142,10 @@ EOL
 fi
 
 # Check for updates
-updateDetails=$(checkForUpdates)
+set updateDetails to checkForUpdates()
 
 # If updates are available, run the AppleScript
-if [[ -n "$updateDetails" ]]; then
+if updateDetails is not equal to "" then
     # Schedule the script to run daily at 12:00 noon using cron syntax
     (crontab -l 2>/dev/null; echo "0 12 * * * /bin/bash $bash_script_file") | crontab -
     
