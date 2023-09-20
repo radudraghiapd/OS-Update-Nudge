@@ -27,18 +27,6 @@ checkForUpdates() {
     fi
 }
 
-# Function to display a notification
-displayNotification() {
-    updateDetails=$(checkForUpdates)
-
-    if [[ -n "$updateDetails" ]]; then
-        messageText="A fully up-to-date device is required to ensure that IT can accurately protect your device."
-        buttonText="Click \"Open Updates\" to install them."
-        dialogText="$messageText"$'\n'$'\n'$updateDetails$'\n'$buttonText
-        display dialog "$dialogText" buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
-    fi
-}
-
 # Set the path to the user's home directory
 current_user=$(stat -f %Su /dev/console)
 user_home_dir=$(eval echo ~$current_user)
@@ -55,19 +43,19 @@ applescript_file="$scripts_dir/macos_update.applescript"
 # Check if the AppleScript file exists, and create it if not
 if [ ! -f "$applescript_file" ]; then
     cat <<EOL > "$applescript_file"
--- Function to display a notification
+-- Function to check for software updates and display a notification if updates are available
 on displayNotification()
-    set updateDetails to do shell script "/usr/bin/softwareupdate -l"
-    
+    set updateDetails to do shell script "softwareupdate -l"
+
     -- Initialize variables to store update information and determine extraction
     set extractInfo to false
-    
+
     -- Split the lines into a list
     set linesList to paragraphs of updateDetails
-    
+
     -- Initialize a variable to store update information
     set updateInfo to ""
-    
+
     -- Extract and format the relevant update information for all updates
     repeat with i from 1 to count linesList
         set thisLine to item i of linesList
@@ -77,7 +65,7 @@ on displayNotification()
             exit repeat
         end if
     end repeat
-    
+
     if updateInfo is not equal to "" then
         set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
         set buttonText to "Click \"Open Updates\" to install them."
