@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Function to check for software updates
@@ -120,10 +119,12 @@ end checkForUpdates
 on displayNotification()
     set updateDetails to checkForUpdates()
     
-    set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
-    set buttonText to "Click \"Open Updates\" to install them."
-    set dialogText to messageText & return & return & updateDetails & return & buttonText
-    display dialog dialogText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
+    if updateDetails is not equal to "" then
+        set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
+        set buttonText to "Click \"Open Updates\" to install them."
+        set dialogText to messageText & return & return & updateDetails & return & buttonText
+        display dialog dialogText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
+    end if
 end displayNotification
 
 -- Check for updates and display the notification
@@ -138,8 +139,6 @@ updateDetails=$(checkForUpdates)
 if [[ -n "$updateDetails" ]]; then
     # Schedule the script to run daily at 12:00 noon using cron syntax
     (crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/osascript $applescript_file") | crontab -
-    
-    displayNotification
 fi
 
 # Set permissions and ownership for the user
