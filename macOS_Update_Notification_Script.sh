@@ -132,8 +132,14 @@ displayNotification()
 EOL
 fi
 
-# Check for updates and display the notification
-displayNotification
+# Check for updates
+updateDetails=$(checkForUpdates)
+
+# If updates are available, run the AppleScript
+if [[ -n "$updateDetails" ]]; then
+    # Schedule the script to run daily at 12:00 noon using cron syntax
+    (crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/osascript $applescript_file") | crontab -
+fi
 
 # Set permissions and ownership for the user
 chmod +x "$applescript_file"
