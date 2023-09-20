@@ -14,7 +14,7 @@ mkdir -p "$scripts_dir"
 
 # Set the path to the script files in the user's home directory
 applescript_file="$scripts_dir/macos_update.applescript"
-bash_script_file="$scripts_dir/macos_update_script.sh"
+bash_script_file="$scripts_dir/OSXupdate.sh"
 
 # Set the path to the LaunchAgent plist in the user's LaunchAgents folder
 launchagent_file="$user_home_dir/Library/LaunchAgents/com.osx.update_check.plist"
