@@ -170,7 +170,6 @@ chown "$current_user" "$applescript_file" "$bash_script_file"
 
 
 # Load the LaunchAgent for the user
-launchctl bootout gui/$UID "$launchagent_file"  # Unload the launch agent
 launchctl bootstrap gui/$UID "$launchagent_file"  # Load the launch agent
 
 echo "Scripts and LaunchAgent created and configured for user: $current_user"
