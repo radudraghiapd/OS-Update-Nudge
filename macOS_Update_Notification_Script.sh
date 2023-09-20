@@ -1,50 +1,34 @@
 #!/bin/bash
 
-# Function to check for software updates
-checkForUpdates() {
-    updatesAvailable=$(softwareupdate -l)
-
-    # Initialize variables to store update information and determine extraction
-    versionNumber=""
-    extractInfo=false
-
-    # Split the lines into a list
-    IFS=$'\n' read -r -a linesList <<< "$updatesAvailable"
-
-    # Iterate through the list to find the version number
-    for thisLine in "${linesList[@]}"; do
-        # Extract the version number if the line contains the word "macOS"
-        if [[ $thisLine == *macOS* ]]; then
-            # Extract the version number
-            versionNumber=$(echo "$thisLine" | awk '{print $NF}')
-            break
-        fi
-    done
-
-    # If the version number was found, continue extracting other information
-    if [[ -n "$versionNumber" ]]; then
-        extractInfo=true
-    fi
-
-    # Initialize a variable to store update information
-    updateInfo=""
-
-    # Extract and format the relevant update information for all updates
-    for thisLine in "${linesList[@]}"; do
-        if $extractInfo && [[ $thisLine != "" && $thisLine != " " && $thisLine != *$'\t'* && $thisLine != *"Recommended:"* && $thisLine != *"Action:"* ]]; then
-            updateInfo+="$thisLine"$'\n'
-        else
-            break
-        fi
-    done
-
-    if [[ -n "$versionNumber" ]]; then
-        echo "$versionNumber"$'\n'"$updateInfo"
-    fi
-}
-
 # Function to display a notification
 displayNotification() {
+    # Function to check for software updates
+    checkForUpdates() {
+        updatesAvailable=$(softwareupdate -l)
+
+        # Initialize variables to store update information and determine extraction
+        extractInfo=false
+
+        # Split the lines into a list
+        IFS=$'\n' read -r -a linesList <<< "$updatesAvailable"
+
+        # Initialize a variable to store update information
+        updateInfo=""
+
+        # Extract and format the relevant update information for all updates
+        for thisLine in "${linesList[@]}"; do
+            if $extractInfo && [[ $thisLine != "" && $thisLine != " " && $thisLine != *$'\t'* && $thisLine != *"Recommended:"* && $thisLine != *"Action:"* ]]; then
+                updateInfo+="$thisLine"$'\n'
+            else
+                break
+            fi
+        done
+
+        if [[ -n "$updateInfo" ]]; then
+            echo "$updateInfo"
+        fi
+    }
+
     updateDetails=$(checkForUpdates)
 
     if [[ -n "$updateDetails" ]]; then
@@ -71,54 +55,36 @@ applescript_file="$scripts_dir/macos_update.applescript"
 # Check if the AppleScript file exists, and create it if not
 if [ ! -f "$applescript_file" ]; then
     cat <<EOL > "$applescript_file"
--- Function to check for software updates
-on checkForUpdates()
-    set updatesAvailable to do shell script "softwareupdate -l"
-    
-    -- Initialize variables to store update information and determine extraction
-    set versionNumber to ""
-    set extractInfo to false
-    
-    -- Split the lines into a list
-    set linesList to paragraphs of updatesAvailable
-    
-    -- Iterate through the list to find the version number
-    repeat with i from 1 to count linesList
-        set thisLine to item i of linesList
-        if thisLine contains "macOS Ventura" then
-            -- Extract the version number
-            set versionNumber to last word of thisLine
-            exit repeat
-        end if
-    end repeat
-    
-    -- If the version number was found, continue extracting other information
-    if versionNumber is not equal to "" then
-        set extractInfo to true
-    end if
-    
-    -- Initialize a variable to store update information
-    set updateInfo to ""
-    
-    -- Extract and format the relevant update information for all updates
-    repeat with i from 1 to count linesList
-        set thisLine to item i of linesList
-        if extractInfo then
+-- Function to display a notification
+on displayNotification()
+    -- Function to check for software updates
+    on checkForUpdates()
+        set updatesAvailable to do shell script "softwareupdate -l"
+        
+        -- Initialize variables to store update information and determine extraction
+        set extractInfo to false
+        
+        -- Split the lines into a list
+        set linesList to paragraphs of updatesAvailable
+        
+        -- Initialize a variable to store update information
+        set updateInfo to ""
+        
+        -- Extract and format the relevant update information for all updates
+        repeat with i from 1 to count linesList
+            set thisLine to item i of linesList
             if thisLine is not in {"", " ", tab} and thisLine does not contain "Recommended:" and thisLine does not contain "Action:" then
                 set updateInfo to updateInfo & thisLine & return
             else
                 exit repeat
             end if
-        end if
-    end repeat
-    
-    return versionNumber & return & updateInfo
-end checkForUpdates
+        end repeat
+        
+        return updateInfo
+    end checkForUpdates
 
--- Function to display a notification
-on displayNotification()
     set updateDetails to checkForUpdates()
-    
+
     if updateDetails is not equal to "" then
         set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
         set buttonText to "Click \"Open Updates\" to install them."
