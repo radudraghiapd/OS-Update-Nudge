@@ -101,7 +101,7 @@ on checkForUpdates()
     set updateInfo to ""
     
     -- Extract and format the relevant update information for all updates
-    repeat with i from i to count linesList
+    repeat with i from 1 to count linesList
         set thisLine to item i of linesList
         if extractInfo then
             if thisLine is not in {"", " ", tab} and thisLine does not contain "Recommended:" and thisLine does not contain "Action:" then
