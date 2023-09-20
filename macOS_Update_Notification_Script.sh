@@ -109,8 +109,59 @@ EOL
 # Create the Bash script directly in the Scripts directory
 cat <<EOL > "$bash_script_file"
 #!/bin/bash
-osascript "$applescript_file"
+
+# Function to check for software updates
+checkForUpdates() {
+    updatesAvailable=\$(softwareupdate -l)
+
+    # Initialize variables to store update information and determine extraction
+    versionNumber=""
+    extractInfo=false
+
+    # Split the lines into a list
+    IFS=\$'\n' read -r -a linesList <<< "\$updatesAvailable"
+
+    # Iterate through the list to find the version number
+    for thisLine in "\${linesList[@]}"; do
+        # Extract the version number if the line contains the word "macOS"
+        if [[ \$thisLine == *macOS* ]]; then
+            # Extract the version number
+            versionNumber=\$(echo "\$thisLine" | awk '{print \$NF}')
+            break
+        fi
+    done
+
+    # If the version number was found, continue extracting other information
+    if [[ -n "\$versionNumber" ]]; then
+        extractInfo=true
+    fi
+
+    # Initialize a variable to store update information
+    updateInfo=""
+
+    # Extract and format the relevant update information for all updates
+    for thisLine in "\${linesList[@]}"; do
+        if \$extractInfo && [[ \$thisLine != "" && \$thisLine != " " && \$thisLine != *\$'\t'* && \$thisLine != *"Recommended:"* && \$thisLine != *"Action:"* ]]; then
+            updateInfo+="\$thisLine"\$'\n'
+        else
+            break
+        fi
+    done
+
+    if [[ -n "\$versionNumber" ]]; then
+        echo "\$versionNumber"\$'\n'"\$updateInfo"
+    fi
+}
+
+# Check for updates
+updateDetails=\$(checkForUpdates)
+
+# If updates are available, run the AppleScript
+if [[ -n "\$updateDetails" ]]; then
+    osascript "$applescript_file"
+fi
 EOL
+
 
 # Set permissions and ownership for the user
 chmod +x "$applescript_file" "$bash_script_file"
