@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Function to check for software updates
@@ -45,13 +46,13 @@ checkForUpdates() {
 
 # Function to display a notification
 displayNotification() {
-    set updateDetails to checkForUpdates()
+    updateDetails=$(checkForUpdates)
 
     if [[ -n "$updateDetails" ]]; then
-        set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
-        set buttonText to "Click \"Open Updates\" to install them."
-        set dialogText to messageText & return & return & updateDetails & return & buttonText
-        display dialog dialogText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
+        messageText="A fully up-to-date device is required to ensure that IT can accurately protect your device."
+        buttonText="Click \"Open Updates\" to install them."
+        dialogText="$messageText"$'\n'$'\n'$updateDetails$'\n'$buttonText
+        display dialog "$dialogText" buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
     fi
 }
 
@@ -65,9 +66,8 @@ scripts_dir="$user_home_dir/Library/Scripts"
 # Create the Scripts directory if it doesn't exist
 mkdir -p "$scripts_dir"
 
-# Set the path to the script files in the user's home directory
+# Set the path to the AppleScript file in the user's home directory
 applescript_file="$scripts_dir/macos_update.applescript"
-bash_script_file="$scripts_dir/macos_update_script.sh"
 
 # Check if the AppleScript file exists, and create it if not
 if [ ! -f "$applescript_file" ]; then
@@ -131,27 +131,17 @@ displayNotification()
 EOL
 fi
 
-# Check if the Bash script file exists, and create it if not
-if [ ! -f "$bash_script_file" ]; then
-    cat <<EOL > "$bash_script_file"
-#!/bin/bash
-
-osascript "$applescript_file"
-EOL
-    chmod +x "$bash_script_file"
-fi
-
 # Check for updates
-set updateDetails to checkForUpdates()
+updateDetails=$(checkForUpdates)
 
 # If updates are available, run the AppleScript
-if updateDetails is not equal to "" then
+if [[ -n "$updateDetails" ]]; then
     # Schedule the script to run daily at 12:00 noon using cron syntax
-    (crontab -l 2>/dev/null; echo "0 12 * * * /bin/bash $bash_script_file") | crontab -
+    (crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/osascript $applescript_file") | crontab -
     
     displayNotification
 fi
 
 # Set permissions and ownership for the user
-chmod +x "$applescript_file" "$bash_script_file"
-chown "$current_user" "$applescript_file" "$bash_script_file"
+chmod +x "$applescript_file"
+chown "$current_user" "$applescript_file"
