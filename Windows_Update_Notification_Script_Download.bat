@@ -41,7 +41,7 @@ if !errorlevel! equ 0 (
     Powershell -Command "Unblock-File -Path '%scriptPath%'"
 
     :: Create a scheduled task to run for all interactive users
-    schtasks /create /tn Windows_Update_Check /rl HIGHEST /tr "%bat_script%" /sc daily /st 12:30 /ru "NT AUTHORITY\INTERACTIVE"
+    schtasks /create /tn Windows_Update_Check /rl HIGHEST /tr "%bat_script%" /sc daily /st 12:00 /ru "NT AUTHORITY\INTERACTIVE"
 ) else (
     echo Failed to download the script from %script_url%
 )
