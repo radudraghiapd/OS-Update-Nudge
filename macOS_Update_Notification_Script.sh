@@ -1,93 +1,95 @@
 #!/bin/bash
 
-# Function to check for software updates
-checkForUpdates() {
-    updatesAvailable=$(softwareupdate -l)
+# Get the current user's home directory
+user_home="$HOME"
 
-    # Initialize variables to store update information and determine extraction
-    extractInfo=false
+# Define the folder and file paths
+scripts_folder="$user_home/Library/Scripts"
+applescript_file="$scripts_folder/macos_update.applescript"
+bash_script_file="$scripts_folder/check_updates.sh"
+launch_agent_file="$user_home/Library/LaunchAgents/com.osxupdatecheck.plist"
 
-    # Split the lines into a list
-    IFS=$'\n' read -r -a linesList <<< "$updatesAvailable"
+# Create the "Scripts" folder if it doesn't exist
+if [ ! -d "$scripts_folder" ]; then
+    mkdir -p "$scripts_folder"
+fi
 
-    # Initialize a variable to store update information
-    updateInfo=""
+# Create and populate the macos_update.applescript file
+cat > "$applescript_file" <<EOF
+-- Function to check for software updates
+on checkForUpdates()
+    do shell script "softwareupdate -l"
+end checkForUpdates
 
-    # Extract and format the relevant update information for all updates
-    for thisLine in "${linesList[@]}"; do
-        if $extractInfo && [[ $thisLine != "" && $thisLine != " " && $thisLine != *$'\t'* && $thisLine != *"Recommended:"* && $thisLine != *"Action:"* ]]; then
-            updateInfo+="$thisLine"$'\n'
-        else
-            break
-        fi
-    done
-
-    if [[ -n "$updateInfo" ]]; then
-        echo "$updateInfo"
-    fi
-}
-
-# Set the path to the user's home directory
-current_user=$(stat -f %Su /dev/console)
-user_home_dir=$(eval echo ~$current_user)
-
-# Set the path to the Scripts directory in the user's home directory
-scripts_dir="$user_home_dir/Library/Scripts"
-
-# Create the Scripts directory if it doesn't exist
-mkdir -p "$scripts_dir"
-
-# Set the path to the AppleScript file in the user's home directory
-applescript_file="$scripts_dir/macos_update.applescript"
-
-# Check if the AppleScript file exists, and create it if not
-if [ ! -f "$applescript_file" ]; then
-    cat <<EOL > "$applescript_file"
--- Function to check for software updates and display a notification if updates are available
+-- Function to display a notification
 on displayNotification()
-    set updateDetails to do shell script "softwareupdate -l"
-
-    -- Initialize variables to store update information and determine extraction
-    set extractInfo to false
-
-    -- Split the lines into a list
-    set linesList to paragraphs of updateDetails
-
-    -- Initialize a variable to store update information
-    set updateInfo to ""
-
-    -- Extract and format the relevant update information for all updates
-    repeat with i from 1 to count linesList
-        set thisLine to item i of linesList
-        if extractInfo and thisLine is not in {"", " ", tab} and thisLine does not contain "Recommended:" and thisLine does not contain "Action:" then
-            set updateInfo to updateInfo & thisLine & return
-        else
-            exit repeat
-        end if
-    end repeat
-
-    if updateInfo is not equal to "" then
-        set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
-        set buttonText to "Click \"Open Updates\" to install them."
-        set dialogText to messageText & return & return & updateInfo & return & buttonText
-        display dialog dialogText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
-    end if
+    display dialog "Software updates are available. Click \"Open Updates\" to install them." buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
 end displayNotification
 
--- Check for updates and display the notification
-displayNotification()
-EOL
-fi
+-- Check for updates
+set updatesAvailable to checkForUpdates()
+
+-- Display the notification only if updates are available
+if updatesAvailable contains "No new software available." then
+    -- No updates available, do nothing
+else
+    -- Updates available, display the notification
+    displayNotification()
+    
+    -- Capture the response
+    set response to button returned of result
+    
+    -- Check the response and open the Software Update preference pane if "Open Updates" was clicked
+    if response is equal to "Open Updates" then
+        do shell script "open /System/Library/PreferencePanes/SoftwareUpdate.prefPane"
+    end if
+end if
+EOF
+
+# Create and populate the check_updates.sh file
+cat > "$bash_script_file" <<EOF
+#!/bin/bash
 
 # Check for updates
-updateDetails=$(checkForUpdates)
+update_check=\$(softwareupdate -l 2>&1)
 
-# If updates are available, run the AppleScript
-if [[ -n "$updateDetails" ]]; then
-    # Schedule the script to run daily at 12:00 noon using cron syntax
-    (crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/osascript $applescript_file") | crontab -
+# Check if updates are available
+if ! echo "\$update_check" | grep -q "No new software available."; then
+    # Updates available, execute the JXA script to display the dialog
+    osascript "$applescript_file"
 fi
+EOF
 
-# Set permissions and ownership for the user
+# Create and populate the com.osxupdatecheck.plist file
+cat > "$launch_agent_file" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.osxupdatecheck</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>$bash_script_file</string>
+    </array>
+    <key>StandardOutPath</key>
+    <string>/tmp/runscript.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/runscript-error.log</string>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>12</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+</dict>
+</plist>
+EOF
+
+# Make the script files executable
 chmod +x "$applescript_file"
-chown "$current_user" "$applescript_file"
+chmod +x "$bash_script_file"
+
+echo "Files and folder created successfully."
