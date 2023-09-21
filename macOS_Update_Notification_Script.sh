@@ -1,17 +1,16 @@
 #!/bin/bash
 
-# Define the folder and file paths
-scripts_folder="/Library/Scripts"
+# Define the user's home directory
+user_home="$HOME"
+
+# Define script files and folders
+scripts_folder="$user_home/Library/Scripts"
 applescript_file="$scripts_folder/macos_update.applescript"
 bash_script_file="$scripts_folder/check_updates.sh"
-launch_daemon_file="/Library/LaunchDaemons/com.osxupdatecheck.plist"
+launch_agent_file="$user_home/Library/LaunchAgents/com.osxupdatecheck.plist"
 
 # Create the "Scripts" folder if it doesn't exist
-if [ ! -d "$scripts_folder" ]; then
-    sudo mkdir -p "$scripts_folder"
-    sudo chown root:wheel "$scripts_folder"
-    sudo chmod 755 "$scripts_folder"
-fi
+mkdir -p "$scripts_folder"
 
 # Create and populate the macos_update.applescript file
 cat > "$applescript_file" <<EOF
@@ -22,45 +21,38 @@ end checkForUpdates
 
 -- Function to display a notification
 on displayNotification()
-    display dialog "Software updates are available. Click \"Open Updates\" to install them." buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
+    set updateDetails to checkForUpdates()
+    set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
+    set infoText to "Update Details:" & return & updateDetails
+    set buttonText to "Click \"Open Updates\" to install them."
+    display dialog messageText & return & return & infoText & return & buttonText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
 end displayNotification
 
--- Check for updates
-set updatesAvailable to checkForUpdates()
-
--- Display the notification only if updates are available
-if updatesAvailable contains "No new software available." then
-    -- No updates available, do nothing
-else
-    -- Updates available, display the notification
-    displayNotification()
-    
-    -- Capture the response
-    set response to button returned of result
-    
-    -- Check the response and open the Software Update preference pane if "Open Updates" was clicked
-    if response is equal to "Open Updates" then
-        do shell script "open /System/Library/PreferencePanes/SoftwareUpdate.prefPane"
-    end if
-end if
+-- Check for updates and display the notification
+displayNotification()
 EOF
 
 # Create and populate the check_updates.sh file
 cat > "$bash_script_file" <<EOF
 #!/bin/bash
 
+# Function to check for updates
+function checkForUpdates() {
+    softwareupdate -l
+}
+
 # Check for updates
-update_check=\$(softwareupdate -l 2>&1)
+update_check=\$(checkForUpdates 2>&1)
 
 # Check if updates are available
 if ! echo "\$update_check" | grep -q "No new software available."; then
-    # Updates available, execute the JXA script to display the dialog
+    # Updates available, execute the AppleScript to display the dialog
     osascript "$applescript_file"
 fi
 EOF
 
-# Create and populate the com.osxupdatecheck.plist file in /Library/LaunchDaemons
-cat > "$launch_daemon_file" <<EOF
+# Create and populate the com.osxupdatecheck.plist file
+cat > "$launch_agent_file" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -76,8 +68,6 @@ cat > "$launch_daemon_file" <<EOF
     <string>/tmp/runscript.log</string>
     <key>StandardErrorPath</key>
     <string>/tmp/runscript-error.log</string>
-    <key>RunAtLoad</key>
-    <true/>
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>
@@ -90,7 +80,7 @@ cat > "$launch_daemon_file" <<EOF
 EOF
 
 # Make the script files executable
-sudo chmod +x "$applescript_file"
-sudo chmod +x "$bash_script_file"
+chmod +x "$applescript_file"
+chmod +x "$bash_script_file"
 
 echo "Files and folder created successfully."
