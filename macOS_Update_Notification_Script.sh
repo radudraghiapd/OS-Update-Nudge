@@ -16,16 +16,68 @@ mkdir -p "$scripts_folder"
 cat > "$applescript_file" <<EOF
 -- Function to check for software updates
 on checkForUpdates()
-    do shell script "softwareupdate -l"
+    set updatesAvailable to do shell script "softwareupdate -l"
+    
+    -- Initialize variables to store update information and determine extraction
+    set versionNumber to ""
+    set extractInfo to false
+    
+    -- Split the lines into a list
+    set linesList to paragraphs of updatesAvailable
+    
+    -- Iterate through the list to find the version number
+    repeat with i from 1 to count linesList
+        set thisLine to item i of linesList
+        if thisLine contains "macOS Ventura" then
+            -- Extract the version number
+            set versionNumber to last word of thisLine
+            exit repeat
+        end if
+    end repeat
+    
+    -- If the version number was found, continue extracting other information
+    if versionNumber is not equal to "" then
+        set extractInfo to true
+    end if
+    
+    -- Initialize a variable to store update information
+    set updateInfo to ""
+    
+    -- Extract and format the relevant update information for all updates
+    repeat with i from i to count linesList
+        set thisLine to item i of linesList
+        if extractInfo then
+            if thisLine is not in {"", " ", tab} and thisLine does not contain "Recommended:" and thisLine does not contain "Action:" then
+                set updateInfo to updateInfo & thisLine & return
+            else
+                exit repeat
+            end if
+        end if
+    end repeat
+    
+    return versionNumber & return & updateInfo
 end checkForUpdates
+
+-- Function to open the Updates preference pane
+on openUpdatesPane()
+    do shell script "open x-apple.systempreferences:com.apple.preferences.softwareupdate"
+end openUpdatesPane
 
 -- Function to display a notification
 on displayNotification()
     set updateDetails to checkForUpdates()
+    
     set messageText to "A fully up-to-date device is required to ensure that IT can accurately protect your device."
-    set infoText to "Update Details:" & return & updateDetails
     set buttonText to "Click \"Open Updates\" to install them."
-    display dialog messageText & return & return & infoText & return & buttonText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution
+    set dialogText to messageText & return & return & updateDetails & return & buttonText
+    
+    -- Display a dialog with the extracted information and "Open Updates" button
+    set userChoice to button returned of (display dialog dialogText buttons {"Open Updates", "Dismiss"} default button "Open Updates" with icon caution)
+    
+    -- If the user clicked "Open Updates," open the Updates preference pane
+    if userChoice is "Open Updates" then
+        openUpdatesPane()
+    end if
 end displayNotification
 
 -- Check for updates and display the notification
