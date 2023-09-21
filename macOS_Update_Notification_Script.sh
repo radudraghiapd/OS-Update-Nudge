@@ -1,17 +1,16 @@
 #!/bin/bash
 
-# Get the current user's home directory
-user_home="$HOME"
-
 # Define the folder and file paths
-scripts_folder="$user_home/Library/Scripts"
+scripts_folder="/Library/Scripts"
 applescript_file="$scripts_folder/macos_update.applescript"
 bash_script_file="$scripts_folder/check_updates.sh"
-launch_agent_file="$user_home/Library/LaunchAgents/com.osxupdatecheck.plist"
+launch_daemon_file="/Library/LaunchDaemons/com.osxupdatecheck.plist"
 
 # Create the "Scripts" folder if it doesn't exist
 if [ ! -d "$scripts_folder" ]; then
-    mkdir -p "$scripts_folder"
+    sudo mkdir -p "$scripts_folder"
+    sudo chown root:wheel "$scripts_folder"
+    sudo chmod 755 "$scripts_folder"
 fi
 
 # Create and populate the macos_update.applescript file
@@ -60,8 +59,8 @@ if ! echo "\$update_check" | grep -q "No new software available."; then
 fi
 EOF
 
-# Create and populate the com.osxupdatecheck.plist file
-cat > "$launch_agent_file" <<EOF
+# Create and populate the com.osxupdatecheck.plist file in /Library/LaunchDaemons
+cat > "$launch_daemon_file" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -77,6 +76,8 @@ cat > "$launch_agent_file" <<EOF
     <string>/tmp/runscript.log</string>
     <key>StandardErrorPath</key>
     <string>/tmp/runscript-error.log</string>
+    <key>RunAtLoad</key>
+    <true/>
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>
@@ -89,7 +90,7 @@ cat > "$launch_agent_file" <<EOF
 EOF
 
 # Make the script files executable
-chmod +x "$applescript_file"
-chmod +x "$bash_script_file"
+sudo chmod +x "$applescript_file"
+sudo chmod +x "$bash_script_file"
 
 echo "Files and folder created successfully."
