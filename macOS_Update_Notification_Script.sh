@@ -28,7 +28,7 @@ on checkForUpdates()
     -- Iterate through the list to find the version number
     repeat with i from 1 to count linesList
         set thisLine to item i of linesList
-        if thisLine contains "macOS Ventura" then
+        if thisLine contains "macOS " then
             -- Extract the version number
             set versionNumber to last word of thisLine
             exit repeat
