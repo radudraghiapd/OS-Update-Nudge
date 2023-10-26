@@ -1,6 +1,6 @@
 # OS Update Nudge
 
-The objective of this implementation is to promote user-initiated OS updates whenever they become available, eliminating the need for continuous IT intervention.
+The objective of these scripts is to promote user-initiated OS updates whenever they become available, eliminating the need for continuous IT intervention.
 
 The scripts are being pushed via MDM and scheduled to execute daily at noon (according to the device's local time) to check for available updates.
 
