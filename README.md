@@ -1,4 +1,4 @@
-# IT-Dep-Scripts for MDM
+# OS Nudge
 
 The objective of this implementation is to promote user-initiated OS updates whenever they become available, eliminating the need for continuous IT intervention.
 
